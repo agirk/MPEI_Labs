@@ -38,16 +38,18 @@ int main(int argc, char** argv) {
 
         if (ProcRank == 0) {
             timeStart = MPI_Wtime();
-            for (int i = 0; i < N_val[k] / size; i++) {
-                //cout << "rank: " << ProcRank << "  i: " << i << endl;
-                A[i] = i;
-                B[i] = i * 2;
-                C[i] = (i + 1) / 2;
-                Y[i] = (A[i] + B[i] * S1 + C[i]) * A[i];
-            }
+            for (int circle = 0; circle < 1000; circle++) {
+                for (int i = 0; i < N_val[k] / size; i++) {
+                    //cout << "rank: " << ProcRank << "  i: " << i << endl;
+                    A[i] = i;
+                    B[i] = i * 2;
+                    C[i] = (i + 1) / 2;
+                    Y[i] = (A[i] + B[i] * S1 + C[i]) * A[i];
+                }
 
-            for (int i = 1; i < size; i++) { // Сбор результатов 
-                MPI_Recv(&Y[(int)i * N_val[k] / size], (int)N_val[k] / size, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, &status);
+                for (int i = 1; i < size; i++) { // Сбор результатов 
+                    MPI_Recv(&Y[(int)i * N_val[k] / size], (int)N_val[k] / size, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, &status);
+                }
             }
 
             timeEnd = MPI_Wtime();
@@ -60,14 +62,16 @@ int main(int argc, char** argv) {
               //consecutive(N); // Последовательная программа
         }
         else {
-            for (int i = ProcRank * N_val[k] / size; i < (ProcRank + 1) * N_val[k] / size; i++) {
-                //cout << "rank: " << ProcRank << "  i: " << i;
-                A[i] = i;
-                B[i] = i * 2;
-                C[i] = (i + 1) / 2;
-                Y[i] = (A[i] + B[i] * S1 + C[i]) * A[i];
+            for (int circle = 0; circle < 1000; circle++) {
+                for (int i = ProcRank * N_val[k] / size; i < (ProcRank + 1) * N_val[k] / size; i++) {
+                    //cout << "rank: " << ProcRank << "  i: " << i;
+                    A[i] = i;
+                    B[i] = i * 2;
+                    C[i] = (i + 1) / 2;
+                    Y[i] = (A[i] + B[i] * S1 + C[i]) * A[i];
+                }
+                MPI_Send(&Y[(int)ProcRank * N_val[k] / size], (int)N_val[k] / size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
             }
-            MPI_Send(&Y[(int)ProcRank * N_val[k] / size], (int)N_val[k] / size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         }
     }
 
